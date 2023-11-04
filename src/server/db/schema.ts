@@ -3,11 +3,13 @@
 
 import { sql } from "drizzle-orm";
 import {
+  int,
   bigint,
   index,
   mysqlTableCreator,
   timestamp,
   varchar,
+  json,
 } from "drizzle-orm/mysql-core";
 
 /**
@@ -18,17 +20,32 @@ import {
  */
 export const mysqlTable = mysqlTableCreator((name) => `create_t3_app_test_${name}`);
 
-export const posts = mysqlTable(
-  "post",
+export const items = mysqlTable(
+  "item",
   {
     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
     name: varchar("name", { length: 256 }),
-    createdAt: timestamp("created_at")
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    type: varchar("type", { length: 256 }),
+    rarity: varchar("rarity", { length: 256 }),
+    cost: int("cost"),
+    image_url: varchar("image_url", { length: 256 }),
+    stats: json('stats').$type<{ foo: string }>(),
+    attributes: varchar("attributes", { length: 512 }),
+    effects: json('effects').$type<{ foo: {} }>(),
   },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
+  (tableColumns) => ({  
+    nameIndex: index("name_idx").on(tableColumns.name),
+  })
+);
+
+export const recipes = mysqlTable(
+  "recipe",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+    crafted_item_id: int("crafted_item_id"),
+    recipe_items: varchar("recipe_items", { length: 256 }),
+  },
+  (tableColumns) => ({  
+    crafted_item_id_index: index("crafted_item_id_index").on(tableColumns.crafted_item_id),
   })
 );
