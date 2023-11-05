@@ -2,6 +2,17 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { items, recipes } from "~/server/db/schema";
 
+const newItemSchema = z.object({
+    name: z.string(),
+    type: z.string(),
+    rarity: z.string(),
+    cost: z.number(),
+    image_url: z.string(),
+    stats: z.string(),
+    attributes: z.string(),
+    effects: z.string(),
+});
+
 export const itemRouter = createTRPCRouter({
   getAllRecipes: publicProcedure
     .query(async ({ ctx }) => {
@@ -20,4 +31,20 @@ export const itemRouter = createTRPCRouter({
           return { craftedItem, recipeItems };
         });
     }),
+    createItem: publicProcedure
+    .input(newItemSchema)
+    .mutation(async ({ input, ctx }) => {
+        const { name, type, rarity, cost, image_url, stats, attributes, effects } = input;
+  
+        await ctx.db.insert(items).values({
+            name,
+            type,
+            rarity,
+            cost,
+            image_url,
+            stats: JSON.parse(stats),
+            attributes,
+            effects: JSON.parse(effects),
+          });
+      }),
 });
